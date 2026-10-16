@@ -1383,6 +1383,11 @@ html{overflow-anchor:none}
 </head>
 <body>
 <script>
+// every load or refresh starts at the top of the page, on the hero (Des, 2026-10-16)
+(function(){if('scrollRestoration' in history)history.scrollRestoration='manual';
+  function top(){window.scrollTo({top:0,left:0,behavior:'instant'})}
+  top();addEventListener('DOMContentLoaded',top);addEventListener('load',top);
+  addEventListener('pageshow',function(e){if(e.persisted)top()})})();
 // phones fire "resize" whenever the address bar slides in or out while scrolling; on touch screens only pass
 // resizes through when the width changes (rotation), so canvases and the pinned services section don't re-lay out mid-scroll
 (function(){if(!(window.matchMedia&&matchMedia('(pointer:coarse)').matches))return;var W=innerWidth,add=window.addEventListener;
@@ -1679,7 +1684,8 @@ html{overflow-anchor:none}
     setCur(spy[cur])}
   window.addEventListener('scroll',function(){if(!spyTick){spyTick=true;requestAnimationFrame(runSpy)}},{passive:true});
   runSpy();
-  if(location.hash&&location.hash.length>1){var h0=location.hash.slice(1);setTimeout(function(){goTo(h0,false)},60)}
+  // a refresh always opens on the hero (Des, 2026-10-16): drop any #section left in the address bar instead of jumping to it
+  if(location.hash&&history.replaceState){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
 
   // Who We Are: drift-in and gentle parallax on the offset column
   var rv=document.querySelectorAll('.reveal');
