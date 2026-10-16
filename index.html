@@ -1376,12 +1376,21 @@ html{overflow-anchor:none}
 
 
 
+/* smoother phone scrolling: the floating portrait and its blurred halo stop animating on small/touch screens */
+@media (max-width:860px),(pointer:coarse){.nssvc .nssvc-art,.nssvc .nssvc-art::before{animation:none!important}.nssvc .nssvc-art::before{filter:none}}
 /* services pinned scroll switcher (Des, 2026-10-16) */
 .svc-pin{position:relative}
 .svc-pin > .nssvc{position:sticky;top:0}
 </style>
 </head>
 <body>
+<script>
+// phones fire "resize" whenever the address bar slides in or out while scrolling; on touch screens only pass
+// resizes through when the width changes (rotation), so canvases and the pinned services section don't re-lay out mid-scroll
+(function(){if(!(window.matchMedia&&matchMedia('(pointer:coarse)').matches))return;var W=innerWidth,add=window.addEventListener;
+  window.addEventListener=function(t,f,o){if(t!=='resize'||typeof f!=='function')return add.call(window,t,f,o);
+    return add.call(window,t,function(e){if(innerWidth===W)return;W=innerWidth;f.call(window,e)},o)}})();
+</script>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
@@ -1751,7 +1760,7 @@ html{overflow-anchor:none}
         ' float a=smoothstep(.5,.05,r)*vA*(.5+.7*smoothstep(-1.5,3.2,vH));',
         ' gl_FragColor=vec4(mix(uC1,uC2,smoothstep(.8,4.,vH)),a);}'].join('\n')});
     grp.add(new THREE.Points(g,m));
-    function size(){var w=stage.clientWidth,h=stage.clientHeight,dpr=Math.min(2,window.devicePixelRatio||1);
+    function size(){var w=stage.clientWidth,h=stage.clientHeight,dpr=Math.min(small?1.5:2,window.devicePixelRatio||1);
       R.setPixelRatio(dpr);R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();U.uPx.value=(small?2.6:3.1)*dpr}
     wave={size:size,draw:function(t){U.uT.value=t;
       grp.rotation.y=ex*.06; cam.position.set(ex*.8,6.5-ey*.4,12); cam.lookAt(0,-4.5+ey*.2,-12); R.render(scene,cam)}};
@@ -1967,7 +1976,7 @@ html{overflow-anchor:none}
   function show(p,focus){P=p;tbs.forEach(function(b,k){b.classList.toggle('on',k===p);b.setAttribute('aria-selected',k===p);b.tabIndex=k===p?0:-1});
     tps.forEach(function(e,k){e.classList.toggle('off',k!==p);e.setAttribute('aria-hidden',k!==p);if(k===p){e.classList.remove('enter');e.offsetWidth;e.classList.add('enter')}});
     if(focus)tbs[p].focus();t0=performance.now()}
-  function tick(now){var b=tbs[P];tr.style.setProperty('--vt',b.offsetTop+'px');tr.style.setProperty('--vh',b.offsetHeight+'px');
+  function tick(now){if(SM.matches&&!vis){requestAnimationFrame(tick);return}var b=tbs[P];tr.style.setProperty('--vt',b.offsetTop+'px');tr.style.setProperty('--vh',b.offsetHeight+'px');
     if(SM.matches){tr.style.setProperty('--vp',reduce?1:SF);requestAnimationFrame(tick);return}
     if(paused||!vis)t0+=16;var f=Math.min(1,(now-t0)/DUR);tr.style.setProperty('--vp',reduce?1:f);
     if(!reduce&&f>=1)show((P+1)%tbs.length);requestAnimationFrame(tick)}
